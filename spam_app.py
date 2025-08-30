@@ -2,26 +2,33 @@ import streamlit as st
 import pickle
 import os
 
-# Absolute paths
-BASE_DIR = r"C:\codes and data\sms spam"
+# Get absolute path of current folder
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-model = pickle.load(open(os.path.join(BASE_DIR, "spam_model.pkl"), "rb"))
-vectorizer = pickle.load(open(os.path.join(BASE_DIR, "vectorizer.pkl"), "rb"))
+# Load model and vectorizer safely
+model_path = os.path.join(BASE_DIR, "spam_model.pkl")
+vectorizer_path = os.path.join(BASE_DIR, "vectorizer.pkl")
 
+model = pickle.load(open(model_path, "rb"))
+vectorizer = pickle.load(open(vectorizer_path, "rb"))
+
+# Streamlit App
 st.title("📩 SMS Spam Detector")
-st.write("Type a message and find out if it's Spam or Not Spam!")
+st.write("Enter a message and the app will predict whether it's **Spam** or **Not Spam**.")
 
-message = st.text_area("Enter your SMS message:")
+# Input box
+user_input = st.text_area("Type your message here:")
 
 if st.button("Predict"):
-    if message.strip() == "":
-        st.warning("⚠️ Please enter a message.")
+    if user_input.strip() == "":
+        st.warning("Please enter a message before predicting.")
     else:
-        message_vec = vectorizer.transform([message])
-        prediction = model.predict(message_vec)[0]
-        proba = model.predict_proba(message_vec)[0]
+        # Transform message using the vectorizer
+        transformed_input = vectorizer.transform([user_input])
+        prediction = model.predict(transformed_input)[0]
 
-        if prediction == 1:
-            st.error(f"🚨 Spam! (Confidence: {proba[1]*100:.2f}%)")
+        if prediction == 1:  # Assuming 1 = Spam, 0 = Not Spam
+            st.error("🚨 This message is **SPAM**!")
         else:
-            st.success(f"✅ Not Spam (Confidence: {proba[0]*100:.2f}%)")
+            st.success("✅ This message is **Not Spam**.")
+
